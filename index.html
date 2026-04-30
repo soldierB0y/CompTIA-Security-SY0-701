@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CompTIA Security+ (SY0-701) - Simulador de Examen</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Pantalla de inicio -->
+        <div id="startScreen" class="screen active">
+            <div class="start-content">
+                <h1>CompTIA Security+ (SY0-701)</h1>
+                <h2>Simulador de Examen</h2>
+                
+                <div class="exam-info">
+                    <div class="info-card">
+                        <h3>📋 Información del Examen</h3>
+                        <ul>
+                            <li><strong>Tiempo:</strong> 90 minutos</li>
+                            <li><strong>Preguntas:</strong> Hasta 90</li>
+                            <li><strong>Puntuación mínima:</strong> 750 de 900</li>
+                            <li><strong>Tipos de preguntas:</strong> Opción múltiple, Multi-select, Performance-based</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3>📚 Dominios (Ponderación)</h3>
+                        <ul>
+                            <li>Domain 1: General Security Concepts (12%)</li>
+                            <li>Domain 2: Threats, Vulnerabilities & Mitigations (22%)</li>
+                            <li>Domain 3: Security Architecture (18%)</li>
+                            <li>Domain 4: Security Operations (28%)</li>
+                            <li>Domain 5: Security Program Management (20%)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <h3>⚠️ Instrucciones Importantes</h3>
+                    <ul>
+                        <li>Lee cada pregunta cuidadosamente</li>
+                        <li>Puedes marcar preguntas para revisión posterior</li>
+                        <li>Administra bien tu tiempo de 90 minutos</li>
+                        <li>Selecciona la mejor respuesta para tu situación</li>
+                        <li>No hay penalización por respuestas incorrectas</li>
+                    </ul>
+                </div>
+                
+                <div class="mode-selection">
+                    <h3>Selecciona el Modo de Examen</h3>
+                    <button class="btn btn-primary" onclick="startExam('practice')">
+                        📝 Modo Práctica
+                    </button>
+                    <button class="btn btn-secondary" onclick="startExam('timed')">
+                        ⏱️ Modo Cronometrado (90 min)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla del examen -->
+        <div id="examScreen" class="screen">
+            <div class="exam-header">
+                <div class="header-left">
+                    <h2>CompTIA Security+ SY0-701</h2>
+                    <p id="progressText"></p>
+                </div>
+                
+                <div class="header-center">
+                    <div class="timer" id="timer">
+                        <span id="timerDisplay">90:00</span>
+                        <p>Tiempo restante</p>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <button class="btn btn-small" onclick="toggleReviewPanel()">📋 Revisar</button>
+                    <button class="btn btn-small btn-danger" onclick="endExamEarly()">🛑 Terminar</button>
+                </div>
+            </div>
+
+            <div class="exam-content">
+                <div class="question-panel">
+                    <div class="question-number" id="questionNumber"></div>
+                    
+                    <div class="question-text" id="questionText"></div>
+                    
+                    <div class="question-type" id="questionType"></div>
+                    
+                    <div class="options-container" id="optionsContainer"></div>
+                    
+                    <div class="question-actions">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="markReview">
+                            Marcar para revisión
+                        </label>
+                    </div>
+                    
+                    <div class="navigation-buttons">
+                        <button class="btn btn-secondary" onclick="previousQuestion()" id="prevBtn">← Anterior</button>
+                        <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Siguiente →</button>
+                    </div>
+                </div>
+
+                <div class="review-panel" id="reviewPanel" style="display: none;">
+                    <h3>Panel de Revisión</h3>
+                    <div style="font-size: 0.9em; margin-bottom: 15px; color: #666;">
+                        <div>✓ Respondidas: <span id="answeredCount">0</span></div>
+                        <div>⭐ Marcadas: <span id="reviewedCount">0</span></div>
+                    </div>
+                    <div class="review-content" id="reviewContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de resultados -->
+        <div id="resultsScreen" class="screen">
+            <div class="results-content">
+                <h1>Resultados del Examen</h1>
+                
+                <div class="score-display">
+                    <div class="final-score" id="finalScore"></div>
+                    <div class="pass-status" id="passStatus"></div>
+                </div>
+                
+                <div class="results-summary">
+                    <div class="summary-card">
+                        <h3>📊 Estadísticas</h3>
+                        <div class="stat-row">
+                            <span class="stat-label">Respuestas Correctas:</span>
+                            <span class="stat-value"><span id="correctAnswers">0</span>/<span id="totalQuestions">0</span></span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Porcentaje:</span>
+                            <span class="stat-value"><span id="scorePercentage">0</span>%</span>
+                        </div>
+                        <div class="stat-row">
+                            <span class="stat-label">Puntuación para Pasar:</span>
+                            <span class="stat-value"><span id="passingScore">750</span>/900</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <h3>🎯 Desempeño por Dominio</h3>
+                        <div id="domainResults"></div>
+                    </div>
+                </div>
+                
+                <div class="detailed-review">
+                    <h3>Revisión Detallada de Preguntas</h3>
+                    <div id="detailedReviewContent"></div>
+                </div>
+                
+                <div class="results-actions">
+                    <button class="btn btn-primary" onclick="returnToStart()">🏠 Volver al Inicio</button>
+                    <button class="btn btn-secondary" onclick="retryExam()">🔄 Intentar Nuevamente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
