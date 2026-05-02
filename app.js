@@ -5,6 +5,7 @@ class ExamSimulator {
     constructor() {
         this.mode = null; // 'practice' or 'timed'
         this.currentQuestionIndex = 0;
+        this.shuffledQuestions = [...questions]; // shuffled order for each exam session
         this.totalQuestions = questions.length;
         this.timeRemaining = 90 * 60; // 90 minutes in seconds
         this.timerInterval = null;
@@ -31,6 +32,14 @@ class ExamSimulator {
         this.answers.clear();
         this.reviewedQuestions.clear();
         this.resetDomainScores();
+
+        // Shuffle question order for this exam session (Fisher-Yates)
+        this.shuffledQuestions = [...questions];
+        for (let i = this.shuffledQuestions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [this.shuffledQuestions[i], this.shuffledQuestions[j]] =
+                [this.shuffledQuestions[j], this.shuffledQuestions[i]];
+        }
 
         // Hide start screen, show exam screen
         document.getElementById('startScreen').classList.remove('active');
@@ -92,7 +101,7 @@ class ExamSimulator {
             return;
         }
 
-        const question = questions[this.currentQuestionIndex];
+        const question = this.shuffledQuestions[this.currentQuestionIndex];
 
         // Update question info
         const qNumText = currentLanguage === 'es' ? 'Pregunta' : 'Question';
@@ -128,17 +137,23 @@ class ExamSimulator {
         const optionsContainer = document.getElementById('optionsContainer');
         optionsContainer.innerHTML = '';
 
-        question.options.forEach((option, index) => {
+        // Shuffle options so the correct answer isn't always in the same position.
+        // We track original indices so answer storage remains consistent.
+        const shuffledOptions = question.options
+            .map((option, index) => ({ option, originalIndex: index }))
+            .sort(() => Math.random() - 0.5);
+
+        shuffledOptions.forEach(({ option, originalIndex }) => {
             const optionElement = document.createElement('label');
             optionElement.className = 'option';
 
             const inputType = question.type === 'multiple-choice' ? 'radio' : 'checkbox';
-            const inputName = question.type === 'multiple-choice' ? `question_${question.id}` : `question_${question.id}_${index}`;
+            const inputName = question.type === 'multiple-choice' ? `question_${question.id}` : `question_${question.id}_${originalIndex}`;
 
             const input = document.createElement('input');
             input.type = inputType;
             input.name = inputName;
-            input.value = index;
+            input.value = originalIndex;  // always store/compare by original index
             input.dataset.correct = option.correct;
 
             const textSpan = document.createElement('span');
@@ -146,7 +161,7 @@ class ExamSimulator {
             const optionTextToDisplay = (currentLanguage === 'es' && option.text_es) ? option.text_es : option.text;
             textSpan.textContent = optionTextToDisplay;
 
-            input.addEventListener('change', () => this.handleOptionChange(question, index, input.type));
+            input.addEventListener('change', () => this.handleOptionChange(question, originalIndex, input.type));
 
             optionElement.appendChild(input);
             optionElement.appendChild(textSpan);
@@ -237,7 +252,7 @@ class ExamSimulator {
 
     toggleMarkReview() {
         const checkbox = document.getElementById('markReview');
-        const questionId = questions[this.currentQuestionIndex].id;
+        const questionId = this.shuffledQuestions[this.currentQuestionIndex].id;
 
         if (checkbox.checked) {
             this.reviewedQuestions.add(questionId);
@@ -256,7 +271,7 @@ class ExamSimulator {
         let reviewedCount = 0;
 
         for (let i = 0; i < this.totalQuestions; i++) {
-            const question = questions[i];
+            const question = this.shuffledQuestions[i];
             const isAnswered = this.answers.has(question.id);
             const isReviewed = this.reviewedQuestions.has(question.id);
             const isCurrent = i === this.currentQuestionIndex;
@@ -307,7 +322,7 @@ class ExamSimulator {
         let correctAnswers = 0;
         let totalQuestions = 0;
 
-        questions.forEach(question => {
+        this.shuffledQuestions.forEach(question => {
             totalQuestions++;
             const domain = question.domain;
             this.domainScores[domain].total++;
@@ -354,9 +369,8 @@ class ExamSimulator {
                 return false;
             }
 
-            return selectedIndices.every(idx => {
-                return selectedIndices.includes(idx) && question.options[idx].correct;
-            });
+            // Every selected index must point to a correct option
+            return selectedIndices.every(idx => question.options[idx].correct);
         }
     }
 
@@ -418,7 +432,7 @@ class ExamSimulator {
         const reviewContainer = document.getElementById('detailedReviewContent');
         reviewContainer.innerHTML = '';
 
-        questions.forEach(question => {
+        this.shuffledQuestions.forEach(question => {
             const isCorrect = this.isAnswerCorrect(question);
             const userAnswered = this.answers.has(question.id);
             const userAnswer = userAnswered ? this.answers.get(question.id) : null;
