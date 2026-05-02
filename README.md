@@ -1,7 +1,7 @@
 # CompTIA Security+ (SY0-701) Exam Simulator
 
 A simple, fast, and interactive web-based exam simulator designed to help you prepare for the CompTIA Security+ (SY0-701) certification. This simulator provides a realistic testing experience by generating a randomized 90-question exam from a comprehensive bank of over 330 questions.
-
+You can take the exam here => https://soldierb0y.github.io/CompTIA-Security-SY0-701/
 ## 📝 Acknowledgements / Credits
 
 The questions, concepts, and study materials in this simulator were generated and based entirely on the excellent study notes provided here:  
