@@ -95,11 +95,21 @@ class ExamSimulator {
         const question = questions[this.currentQuestionIndex];
 
         // Update question info
+        const qNumText = currentLanguage === 'es' ? 'Pregunta' : 'Question';
+        const ofText = currentLanguage === 'es' ? 'de' : 'of';
         document.getElementById('questionNumber').textContent = 
-            `Question ${this.currentQuestionIndex + 1} of ${this.totalQuestions}`;
-        document.getElementById('questionText').textContent = question.questionText;
-        document.getElementById('questionType').textContent = 
-            question.type === 'multiple-choice' ? 'Multiple Choice' : 'Multi-Select';
+            `${qNumText} ${this.currentQuestionIndex + 1} ${ofText} ${this.totalQuestions}`;
+            
+        const textToDisplay = (currentLanguage === 'es' && question.questionText_es) ? question.questionText_es : question.questionText;
+        document.getElementById('questionText').textContent = textToDisplay;
+        
+        let typeText = '';
+        if (question.type === 'multiple-choice') {
+            typeText = currentLanguage === 'es' ? 'Opción Múltiple' : 'Multiple Choice';
+        } else {
+            typeText = currentLanguage === 'es' ? 'Selección Múltiple' : 'Multi-Select';
+        }
+        document.getElementById('questionType').textContent = typeText;
 
         // Display options
         this.displayOptions(question);
@@ -133,7 +143,8 @@ class ExamSimulator {
 
             const textSpan = document.createElement('span');
             textSpan.className = 'option-text';
-            textSpan.textContent = option.text;
+            const optionTextToDisplay = (currentLanguage === 'es' && option.text_es) ? option.text_es : option.text;
+            textSpan.textContent = optionTextToDisplay;
 
             input.addEventListener('change', () => this.handleOptionChange(question, index, input.type));
 
@@ -216,6 +227,8 @@ class ExamSimulator {
     updateNavigationButtons() {
         document.getElementById('prevBtn').disabled = this.currentQuestionIndex === 0;
         document.getElementById('nextBtn').disabled = this.currentQuestionIndex === this.totalQuestions - 1;
+        document.getElementById('prevBtn').textContent = currentLanguage === 'es' ? '← Anterior' : '← Previous';
+        document.getElementById('nextBtn').textContent = currentLanguage === 'es' ? 'Siguiente →' : 'Next →';
     }
 
     // =====================
@@ -414,27 +427,29 @@ class ExamSimulator {
             reviewDiv.className = 'review-question ' + (isCorrect ? 'correct' : 'incorrect');
 
             let detailsHTML = `
-                <h4>Question ${question.questionNumber}: ${question.questionText}</h4>
+                <h4>${currentLanguage === 'es' ? 'Pregunta' : 'Question'} ${question.questionNumber}: ${(currentLanguage === 'es' && question.questionText_es) ? question.questionText_es : question.questionText}</h4>
             `;
 
             if (userAnswered) {
                 let userAnswerText = '';
                 if (question.type === 'multiple-choice') {
-                    userAnswerText = question.options[userAnswer].text;
+                    userAnswerText = (currentLanguage === 'es' && question.options[userAnswer].text_es) ? question.options[userAnswer].text_es : question.options[userAnswer].text;
                 } else {
                     const indices = Array.isArray(userAnswer) ? userAnswer : [userAnswer];
-                    userAnswerText = indices.map(idx => question.options[idx].text).join(', ');
+                    userAnswerText = indices.map(idx => (currentLanguage === 'es' && question.options[idx].text_es) ? question.options[idx].text_es : question.options[idx].text).join(', ');
                 }
-                detailsHTML += `<div class="review-answer"><strong>Your Answer:</strong> ${userAnswerText}</div>`;
+                detailsHTML += `<div class="review-answer"><strong>${currentLanguage === 'es' ? 'Tu Respuesta:' : 'Your Answer:'}</strong> ${userAnswerText}</div>`;
             } else {
-                detailsHTML += `<div class="review-answer"><strong>Your Answer:</strong> Not answered</div>`;
+                detailsHTML += `<div class="review-answer"><strong>${currentLanguage === 'es' ? 'Tu Respuesta:' : 'Your Answer:'}</strong> ${currentLanguage === 'es' ? 'No respondida' : 'Not answered'}</div>`;
             }
 
             let correctAnswerText = '';
             const correctOptions = question.options.filter(opt => opt.correct);
-            correctAnswerText = correctOptions.map(opt => opt.text).join(', ');
-            detailsHTML += `<div class="review-answer"><strong>Correct Answer:</strong> ${correctAnswerText}</div>`;
-            detailsHTML += `<div class="review-answer"><strong>Explanation:</strong> ${question.explanation}</div>`;
+            correctAnswerText = correctOptions.map(opt => (currentLanguage === 'es' && opt.text_es) ? opt.text_es : opt.text).join(', ');
+            detailsHTML += `<div class="review-answer"><strong>${currentLanguage === 'es' ? 'Respuesta Correcta:' : 'Correct Answer:'}</strong> ${correctAnswerText}</div>`;
+            
+            const expText = (currentLanguage === 'es' && question.explanation_es) ? question.explanation_es : question.explanation;
+            detailsHTML += `<div class="review-answer"><strong>${currentLanguage === 'es' ? 'Explicación:' : 'Explanation:'}</strong> ${expText}</div>`;
 
             reviewDiv.innerHTML = detailsHTML;
             reviewContainer.appendChild(reviewDiv);
@@ -477,10 +492,12 @@ class ExamSimulator {
 // =====================
 
 let examSimulator;
+let currentLanguage = 'en';
 
 document.addEventListener('DOMContentLoaded', () => {
     examSimulator = new ExamSimulator();
     setupEventListeners();
+    updateUILanguage();
 });
 
 function setupEventListeners() {
@@ -536,4 +553,63 @@ function returnToStart() {
 
 function retryExam() {
     examSimulator.retryExam();
+}
+
+function setLanguage(lang) {
+    currentLanguage = lang;
+    document.getElementById('langBtnEn').className = lang === 'en' ? 'btn btn-small btn-primary' : 'btn btn-small btn-secondary';
+    document.getElementById('langBtnEs').className = lang === 'es' ? 'btn btn-small btn-primary' : 'btn btn-small btn-secondary';
+    
+    updateUILanguage();
+    
+    if (examSimulator && examSimulator.isExamActive) {
+        examSimulator.displayQuestion();
+        examSimulator.updateReviewPanel();
+    }
+}
+
+function updateUILanguage() {
+    const isEs = currentLanguage === 'es';
+    
+    // Start Screen
+    document.getElementById('mainTitle').textContent = isEs ? 'CompTIA Security+ (SY0-701)' : 'CompTIA Security+ (SY0-701)';
+    document.getElementById('subTitle').textContent = isEs ? 'Simulador de Examen' : 'Exam Simulator';
+    document.getElementById('examInfoTitle').textContent = isEs ? '📋 Información del Examen' : '📋 Exam Information';
+    document.getElementById('infoTime').innerHTML = isEs ? '<strong>Tiempo:</strong> 90 minutos' : '<strong>Time:</strong> 90 minutes';
+    document.getElementById('infoQuestions').innerHTML = isEs ? '<strong>Preguntas:</strong> Hasta 90' : '<strong>Questions:</strong> Up to 90';
+    document.getElementById('infoPassing').innerHTML = isEs ? '<strong>Puntuación mínima:</strong> 750 de 900' : '<strong>Passing score:</strong> 750 of 900';
+    document.getElementById('infoTypes').innerHTML = isEs ? '<strong>Tipos de preguntas:</strong> Opción múltiple, Multi-select, Performance-based' : '<strong>Question types:</strong> Multiple choice, Multi-select, Performance-based';
+    document.getElementById('domainsTitle').textContent = isEs ? '📚 Dominios (Ponderación)' : '📚 Domains (Weighting)';
+    document.getElementById('instructionsTitle').textContent = isEs ? '⚠️ Instrucciones Importantes' : '⚠️ Important Instructions';
+    document.getElementById('instr1').textContent = isEs ? 'Lee cada pregunta cuidadosamente' : 'Read each question carefully';
+    document.getElementById('instr2').textContent = isEs ? 'Puedes marcar preguntas para revisión posterior' : 'You can mark questions for later review';
+    document.getElementById('instr3').textContent = isEs ? 'Administra bien tu tiempo de 90 minutos' : 'Manage your 90 minutes effectively';
+    document.getElementById('instr4').textContent = isEs ? 'Selecciona la mejor respuesta para tu situación' : 'Select the best answer for the scenario';
+    document.getElementById('instr5').textContent = isEs ? 'No hay penalización por respuestas incorrectas' : 'There is no penalty for incorrect answers';
+    document.getElementById('selectModeTitle').textContent = isEs ? 'Selecciona el Modo de Examen' : 'Select Exam Mode';
+    document.getElementById('practiceModeBtn').textContent = isEs ? '📝 Modo Práctica' : '📝 Practice Mode';
+    document.getElementById('timedModeBtn').textContent = isEs ? '⏱️ Modo Cronometrado (90 min)' : '⏱️ Timed Mode (90 min)';
+    
+    // Exam Screen
+    document.getElementById('examLangToggle').textContent = isEs ? '🇬🇧 Switch to English' : '🇪🇸 Cambiar a Español';
+    document.getElementById('timeRemainingText').textContent = isEs ? 'Tiempo restante' : 'Time remaining';
+    document.getElementById('reviewBtnText').textContent = isEs ? '📋 Revisar' : '📋 Review';
+    document.getElementById('endExamBtnText').textContent = isEs ? '🛑 Terminar' : '🛑 End Exam';
+    
+    // Mark for review
+    const markLabel = document.querySelector('.checkbox-label');
+    if (markLabel) {
+        markLabel.childNodes[2].textContent = isEs ? ' Marcar para revisión' : ' Mark for review';
+    }
+    
+    // Results Screen
+    document.getElementById('resultsTitle').textContent = isEs ? 'Resultados del Examen' : 'Exam Results';
+    document.getElementById('statsTitle').textContent = isEs ? '📊 Estadísticas' : '📊 Statistics';
+    document.getElementById('correctLabel').textContent = isEs ? 'Respuestas Correctas:' : 'Correct Answers:';
+    document.getElementById('percentageLabel').textContent = isEs ? 'Porcentaje:' : 'Percentage:';
+    document.getElementById('passingScoreLabel').textContent = isEs ? 'Puntuación para Pasar:' : 'Passing Score:';
+    document.getElementById('domainPerformanceTitle').textContent = isEs ? '🎯 Desempeño por Dominio' : '🎯 Domain Performance';
+    document.getElementById('detailedReviewTitle').textContent = isEs ? 'Revisión Detallada de Preguntas' : 'Detailed Question Review';
+    document.getElementById('returnHomeBtn').textContent = isEs ? '🏠 Volver al Inicio' : '🏠 Return to Home';
+    document.getElementById('retryBtn').textContent = isEs ? '🔄 Intentar Nuevamente' : '🔄 Try Again';
 }

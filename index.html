@@ -1,32 +1,32 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CompTIA Security+ (SY0-701) - Simulador de Examen</title>
+    <title>CompTIA Security+ (SY0-701) - Exam Simulator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <!-- Pantalla de inicio -->
+        <!-- Start Screen -->
         <div id="startScreen" class="screen active">
             <div class="start-content">
-                <h1>CompTIA Security+ (SY0-701)</h1>
-                <h2>Simulador de Examen</h2>
+                <h1 id="mainTitle">CompTIA Security+ (SY0-701)</h1>
+                <h2 id="subTitle">Exam Simulator</h2>
                 
                 <div class="exam-info">
                     <div class="info-card">
-                        <h3>📋 Información del Examen</h3>
+                        <h3 id="examInfoTitle">📋 Exam Information</h3>
                         <ul>
-                            <li><strong>Tiempo:</strong> 90 minutos</li>
-                            <li><strong>Preguntas:</strong> Hasta 90</li>
-                            <li><strong>Puntuación mínima:</strong> 750 de 900</li>
-                            <li><strong>Tipos de preguntas:</strong> Opción múltiple, Multi-select, Performance-based</li>
+                            <li id="infoTime"><strong>Time:</strong> 90 minutes</li>
+                            <li id="infoQuestions"><strong>Questions:</strong> Up to 90</li>
+                            <li id="infoPassing"><strong>Passing score:</strong> 750 of 900</li>
+                            <li id="infoTypes"><strong>Question types:</strong> Multiple choice, Multi-select, Performance-based</li>
                         </ul>
                     </div>
                     
                     <div class="info-card">
-                        <h3>📚 Dominios (Ponderación)</h3>
+                        <h3 id="domainsTitle">📚 Domains (Weighting)</h3>
                         <ul>
                             <li>Domain 1: General Security Concepts (12%)</li>
                             <li>Domain 2: Threats, Vulnerabilities & Mitigations (22%)</li>
@@ -38,29 +38,35 @@
                 </div>
                 
                 <div class="instructions">
-                    <h3>⚠️ Instrucciones Importantes</h3>
+                    <h3 id="instructionsTitle">⚠️ Important Instructions</h3>
                     <ul>
-                        <li>Lee cada pregunta cuidadosamente</li>
-                        <li>Puedes marcar preguntas para revisión posterior</li>
-                        <li>Administra bien tu tiempo de 90 minutos</li>
-                        <li>Selecciona la mejor respuesta para tu situación</li>
-                        <li>No hay penalización por respuestas incorrectas</li>
+                        <li id="instr1">Read each question carefully</li>
+                        <li id="instr2">You can mark questions for later review</li>
+                        <li id="instr3">Manage your 90 minutes effectively</li>
+                        <li id="instr4">Select the best answer for the scenario</li>
+                        <li id="instr5">There is no penalty for incorrect answers</li>
                     </ul>
                 </div>
                 
                 <div class="mode-selection">
-                    <h3>Selecciona el Modo de Examen</h3>
-                    <button class="btn btn-primary" onclick="startExam('practice')">
-                        📝 Modo Práctica
+                    <h3 id="selectModeTitle">Select Exam Mode</h3>
+                    <button id="practiceModeBtn" class="btn btn-primary" onclick="startExam('practice')">
+                        📝 Practice Mode
                     </button>
-                    <button class="btn btn-secondary" onclick="startExam('timed')">
-                        ⏱️ Modo Cronometrado (90 min)
+                    <button id="timedModeBtn" class="btn btn-secondary" onclick="startExam('timed')">
+                        ⏱️ Timed Mode (90 min)
                     </button>
+                </div>
+                
+                <div class="language-selection" style="margin-top: 20px; text-align: center;">
+                    <h3>Language / Idioma</h3>
+                    <button id="langBtnEn" class="btn btn-small btn-primary" onclick="setLanguage('en')">English</button>
+                    <button id="langBtnEs" class="btn btn-small btn-secondary" onclick="setLanguage('es')">Español</button>
                 </div>
             </div>
         </div>
 
-        <!-- Pantalla del examen -->
+        <!-- Exam Screen -->
         <div id="examScreen" class="screen">
             <div class="exam-header">
                 <div class="header-left">
@@ -71,13 +77,14 @@
                 <div class="header-center">
                     <div class="timer" id="timer">
                         <span id="timerDisplay">90:00</span>
-                        <p>Tiempo restante</p>
+                        <p id="timeRemainingText">Time remaining</p>
                     </div>
                 </div>
                 
                 <div class="header-right">
-                    <button class="btn btn-small" onclick="toggleReviewPanel()">📋 Revisar</button>
-                    <button class="btn btn-small btn-danger" onclick="endExamEarly()">🛑 Terminar</button>
+                    <button class="btn btn-small" onclick="setLanguage(currentLanguage === 'en' ? 'es' : 'en')" id="examLangToggle">🇪🇸 Cambiar a Español</button>
+                    <button class="btn btn-small" onclick="toggleReviewPanel()" id="reviewBtnText">📋 Review</button>
+                    <button class="btn btn-small btn-danger" onclick="endExamEarly()" id="endExamBtnText">🛑 End Exam</button>
                 </div>
             </div>
 
@@ -94,31 +101,31 @@
                     <div class="question-actions">
                         <label class="checkbox-label">
                             <input type="checkbox" id="markReview">
-                            Marcar para revisión
+                            Mark for review
                         </label>
                     </div>
                     
                     <div class="navigation-buttons">
-                        <button class="btn btn-secondary" onclick="previousQuestion()" id="prevBtn">← Anterior</button>
-                        <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Siguiente →</button>
+                        <button class="btn btn-secondary" onclick="previousQuestion()" id="prevBtn">← Previous</button>
+                        <button class="btn btn-primary" onclick="nextQuestion()" id="nextBtn">Next →</button>
                     </div>
                 </div>
 
                 <div class="review-panel" id="reviewPanel" style="display: none;">
-                    <h3>Panel de Revisión</h3>
+                    <h3>Review Panel</h3>
                     <div style="font-size: 0.9em; margin-bottom: 15px; color: #666;">
-                        <div>✓ Respondidas: <span id="answeredCount">0</span></div>
-                        <div>⭐ Marcadas: <span id="reviewedCount">0</span></div>
+                        <div>✓ Answered: <span id="answeredCount">0</span></div>
+                        <div>⭐ Marked: <span id="reviewedCount">0</span></div>
                     </div>
                     <div class="review-content" id="reviewContent"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Pantalla de resultados -->
+        <!-- Results Screen -->
         <div id="resultsScreen" class="screen">
             <div class="results-content">
-                <h1>Resultados del Examen</h1>
+                <h1 id="resultsTitle">Exam Results</h1>
                 
                 <div class="score-display">
                     <div class="final-score" id="finalScore"></div>
@@ -127,35 +134,35 @@
                 
                 <div class="results-summary">
                     <div class="summary-card">
-                        <h3>📊 Estadísticas</h3>
+                        <h3 id="statsTitle">📊 Statistics</h3>
                         <div class="stat-row">
-                            <span class="stat-label">Respuestas Correctas:</span>
+                            <span class="stat-label" id="correctLabel">Correct Answers:</span>
                             <span class="stat-value"><span id="correctAnswers">0</span>/<span id="totalQuestions">0</span></span>
                         </div>
                         <div class="stat-row">
-                            <span class="stat-label">Porcentaje:</span>
+                            <span class="stat-label" id="percentageLabel">Percentage:</span>
                             <span class="stat-value"><span id="scorePercentage">0</span>%</span>
                         </div>
                         <div class="stat-row">
-                            <span class="stat-label">Puntuación para Pasar:</span>
+                            <span class="stat-label" id="passingScoreLabel">Passing Score:</span>
                             <span class="stat-value"><span id="passingScore">750</span>/900</span>
                         </div>
                     </div>
                     
                     <div class="summary-card">
-                        <h3>🎯 Desempeño por Dominio</h3>
+                        <h3 id="domainPerformanceTitle">🎯 Domain Performance</h3>
                         <div id="domainResults"></div>
                     </div>
                 </div>
                 
                 <div class="detailed-review">
-                    <h3>Revisión Detallada de Preguntas</h3>
+                    <h3 id="detailedReviewTitle">Detailed Question Review</h3>
                     <div id="detailedReviewContent"></div>
                 </div>
                 
                 <div class="results-actions">
-                    <button class="btn btn-primary" onclick="returnToStart()">🏠 Volver al Inicio</button>
-                    <button class="btn btn-secondary" onclick="retryExam()">🔄 Intentar Nuevamente</button>
+                    <button id="returnHomeBtn" class="btn btn-primary" onclick="returnToStart()">🏠 Return to Home</button>
+                    <button id="retryBtn" class="btn btn-secondary" onclick="retryExam()">🔄 Try Again</button>
                 </div>
             </div>
         </div>
